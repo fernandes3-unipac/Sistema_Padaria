@@ -4,7 +4,7 @@
  */
 package ClassesDAO;
 
-import Database.Conexao;
+import DataBase.Conexao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,11 +13,15 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import sistema_padaria.Classes.Categoria;
 import sistema_padaria.Classes.Comanda;
 import sistema_padaria.Classes.ItemComanda;
 import sistema_padaria.Classes.Produtos;
 import sistema_padaria.Classes.UnidadeMedida;
+import sistema_padaria.Classes.Usuario;
 
 /**
  *
@@ -25,156 +29,81 @@ import sistema_padaria.Classes.UnidadeMedida;
  */
 public class ComandaDAOImpl implements ComandaDAO {
 
-    private Connection conexao;
-
-    public ComandaDAOImpl() {
-        conexao = Conexao.getConnection();
-    }
-
     @Override
     public List<Comanda> getAllComandas() {
 
-        List<Comanda> lstComandas = new ArrayList<Comanda>();
+        List<Comanda> lstComanda = new ArrayList<Comanda>();
 
         try {
-            PreparedStatement pStatementGetComandas = conexao.prepareStatement("SELECT IDComanda, DataComanda FROM TB_Comanda");
-
-            ResultSet rs = pStatementGetComandas.executeQuery();
-
-            int idComanda = -1;
-            Date DataComanda;
-
-            while (rs.next()) {
-                idComanda = rs.getInt("IDComanda");
-                DataComanda = rs.getDate("DataComanda");
-                //IDUsuario, Perfil perfil, String NomeUsuario, String Senha, String Status
-                Comanda c = new Comanda(idComanda, DataComanda);
-                lstComandas.add(c);
-
-            }
-        } catch (SQLException ex) {
-            System.out.println("Erro de BD = " + ex.getErrorCode() + " - " + ex.getMessage());
+            EntityManagerFactory emf = Persistence.createEntityManagerFactory("padaria");
+            EntityManager em = emf.createEntityManager();
+            lstComanda = em.createQuery("from Comanda").getResultList();
         } catch (Exception ex) {
             System.out.println("Erro = " + ex.getMessage());
         }
 
-        return lstComandas;
+        return lstComanda;
 
     }
 
     @Override
     public Comanda getComandaByID(int id) {
-        Comanda c = null;
+        Comanda com = new Comanda();
 
         try {
-            PreparedStatement pStatementGetComanda = conexao.prepareStatement("SELECT IDComanda, DataComanda  FROM TB_Comanda WHERE IDComanda = ?");
-            pStatementGetComanda.setInt(1, id);
-            ResultSet rs = pStatementGetComanda.executeQuery();
-
-            int idComanda = -1;
-            Date dataComanda = null;
-                
-
-            while (rs.next()) {
-                idComanda = rs.getInt("IDComanda");
-                dataComanda = rs.getDate("DataComanda");
-              
-                //IDUsuario, Perfil perfil, String NomeUsuario, String Senha, String Status
-                 c = new Comanda(idComanda, dataComanda);
-
-            }
-        } catch (SQLException ex) {
-            System.out.println("Erro de BD = " + ex.getErrorCode() + " - " + ex.getMessage());
+            EntityManagerFactory emf = Persistence.createEntityManagerFactory("padaria");
+            EntityManager em = emf.createEntityManager();
+            com = em.find(Comanda.class, id);
         } catch (Exception ex) {
             System.out.println("Erro = " + ex.getMessage());
         }
 
-        return c;
+        return com;
     }
 
     @Override
     public void updateComanda(Comanda comanda) {
-         try {
-            int idGerado = -1;
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("padaria");
+        EntityManager em = emf.createEntityManager();
 
-            PreparedStatement pStatementUpdateComanda = conexao.prepareStatement("UPDATE TB_Comanda SET DataComanda = ? WHERE IDComanda = ?");
-            Date a = comanda.getDataComanda();
-            
-            pStatementUpdateComanda.setDate(1, (java.sql.Date) a);
-            pStatementUpdateComanda.setInt(2, comanda.getIDComanda());
-                        int resultado = pStatementUpdateComanda.executeUpdate();
+        try {
 
-            if (resultado > 0) {
-                System.out.println("Comanda de id " + comanda.getIDComanda()+ " atualizada com sucesso!");
-            } else {
-                System.out.println("Ops! Deu ruim X_X. Não foi possível atualizar o Produto");
-            }
-
-        } catch (SQLException ex) {
-            System.out.println("Erro de BD = " + ex.getErrorCode() + " - " + ex.getMessage());
+            em.getTransaction().begin();
+            em.merge(comanda);
+            em.getTransaction().commit();
+        }catch (Exception ex) {
+            System.out.println("Erro de BD = " + " - " + ex.getMessage());
         }
     }
 
     @Override
     public int insertComanda(Comanda comanda) {
-         int idGerado = -1;
-       try {
-        
-        PreparedStatement pStatementInsertComanda = conexao.prepareStatement("Insert into TB_Comanda(DataComanda) values (?) ", PreparedStatement.RETURN_GENERATED_KEYS);
-        SimpleDateFormat sd =  new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-        pStatementInsertComanda.setString(1, sd.format(comanda.getDataComanda()));
-        
-        
-       
-        ItemComandaDAO itemDAO = new ItemComandaDAOImpl();
-        
-        
-        
-        int resultado = pStatementInsertComanda.executeUpdate();
-        ResultSet rs = pStatementInsertComanda.getGeneratedKeys();
-        if(rs.first()) {
-            idGerado = rs.getInt(1);
-        }
-        
-         for(ItemComanda i : comanda.getItensComanda()){
-            itemDAO.insertItemComanda(i, idGerado);
-        }
+         EntityManagerFactory emf = Persistence.createEntityManagerFactory("padaria");
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.persist(comanda);
+            em.getTransaction().commit();
 
-        if(idGerado >0)
-        {
-            System.out.println("Comanda " + idGerado +  " inserida com suceso");
+        } catch (Exception ex) {
+            System.out.println("Erro = " + ex.getMessage());
         }
-        else
-        {
-            System.out.println("Não foi possivel inserir a Comanda");
-        }
-
-       }
-       catch(SQLException sqlEx) {
-        System.out.println("Erro de BD = " + sqlEx.getErrorCode()  + " - " +  sqlEx.getMessage());
-        }
-        catch (Exception ex) {
-            System.out.println("Erro = " +    ex.getMessage());
-        } 
-        return idGerado;
+        return comanda.getIDComanda()   ;
     }
 
     @Override
     public void deleteComanda(int id) {
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("padaria");
+        EntityManager em = emf.createEntityManager();
         try {
-            ItemComandaDAO itemDao = new ItemComandaDAOImpl();
-            itemDao.deleteItemComandaByIDComanda(id);
-            PreparedStatement pStatementeDeleteComada = conexao.prepareStatement("DELETE FROM TB_Comanda WHERE IDComanda = ? ");
-             pStatementeDeleteComada.setInt(1, id);
-             int resultado = pStatementeDeleteComada.executeUpdate();
-             
-             if(resultado > 0){
-                 System.out.println("Comanda deletada com sucesso");
-             }else{
-                 System.out.println("Não foi possível deletar  a comanda");
-             }
-            
-        } catch (SQLException ex) {
+
+            Comanda com = em.find(Comanda.class, id);
+            // TODO Auto-generated method stub
+            em.getTransaction().begin();
+            em.remove(com);
+            em.getTransaction().commit();
+
+        }catch (Exception ex) {
             System.out.println("Erro = " + ex.getMessage());
         }
     }

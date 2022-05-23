@@ -18,7 +18,7 @@ public interface UsuarioDAO {
 
     public Usuario getUserById(int id);
 
-    public Usuario getUserByDesc(String nomeUsuario);
+    public Usuario getUserByName(String nomeUsuario);
 
     public void updateUser(Usuario user);
 

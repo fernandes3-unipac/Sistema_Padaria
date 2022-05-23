@@ -21,7 +21,7 @@ public interface PerfilDAO {
 
     public Perfil getPerfilByDesc(String descricao);
 
-    public void updatePerfil(Perfil perfil, String Descricao);
+    public void updatePerfil(Perfil perfil);
 
     public int insertPerfil(Perfil perfil);
 

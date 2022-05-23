@@ -4,20 +4,42 @@
  */
 package sistema_padaria.Classes;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
 /**
  *
  * @author Pedro
  */
+
+@Entity
+@Table(name = "TB_Produtos")
 public class Produtos {
-    
-    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "IDProduto")
     private int IDProduto;
+    @ManyToOne
+    @JoinColumn(name = "IDCategoria")
     private Categoria Categoria;
+    @ManyToOne
+    @JoinColumn(name = "IDUnidadeMedida")
     private UnidadeMedida UnidadeMedida;
+    @Column(name = "Descricao")
     private String Descricao;
+    @Column(name = "CodigoDeBarras")
     private String CodigoDeBarras;
+    @Column(name = "Quantidade")
     private Double Quantidade;
+    @Column(name = "QuantidadeMinima")
     private Double QuantidadeMinima;
+    @Column(name = "ValorUnitario")
     private Double ValorUnitario;
 
     public Produtos(int IDProduto, Categoria Categoria, UnidadeMedida UnidadeMedida, String Descricao, String CodigoDeBarras, Double Quantidade, Double QuantidadeMinima, Double ValorUnitario) {
@@ -30,8 +52,9 @@ public class Produtos {
         this.QuantidadeMinima = QuantidadeMinima;
         this.ValorUnitario = ValorUnitario;
     }
-    
-    public Produtos(){}
+
+    public Produtos() {
+    }
 
     public int getIDProduto() {
         return IDProduto;
@@ -96,12 +119,5 @@ public class Produtos {
     public void setValorUnitario(Double ValorUnitario) {
         this.ValorUnitario = ValorUnitario;
     }
-    
-    
-    
-    
-    
-    
-    
-    
+
 }

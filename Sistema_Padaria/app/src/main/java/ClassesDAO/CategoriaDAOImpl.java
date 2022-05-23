@@ -4,7 +4,10 @@
  */
 package ClassesDAO;
 
-import Database.Conexao;
+import DataBase.Conexao;
+import com.fasterxml.classmate.AnnotationConfiguration;
+import com.mysql.cj.Session;
+import com.mysql.cj.xdevapi.SessionFactory;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,6 +16,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
+import javax.persistence.Query;
 import sistema_padaria.Classes.Categoria;
 import sistema_padaria.Classes.Perfil;
 
@@ -21,97 +28,47 @@ import sistema_padaria.Classes.Perfil;
  * @author Pedro
  */
 public class CategoriaDAOImpl implements CategoriaDAO {
-    private Connection conexao;
-
-    public CategoriaDAOImpl(){
-        conexao = Conexao.getConnection();
-       	
-     }
 
     @Override
     public List<Categoria> getAllCategorias() {
-       List<Categoria> lstCategorias = new ArrayList<Categoria>();
-       try {
-                PreparedStatement pStatementGetCategoria = conexao.prepareStatement("Select IDCategoria, Descricao from TB_Categoria ");
-                ResultSet rs = pStatementGetCategoria.executeQuery();
-        
-                int id = -1;
-                String descricao = "";
-                while(rs.next()) {
-                    
-                    id = rs.getInt("IDCategoria");
-                    descricao = rs.getString("Descricao");
-        
-                    Categoria cat = new Categoria ();
-                    cat.setIDCategoria(id);
-                    cat.setDescricao(descricao);
-                    
-                    lstCategorias.add(cat);
-        
-                }
-            } 
-            catch(SQLException sqlEx) {
-                System.out.println("Erro de BD = " + sqlEx.getErrorCode()  + " - " +  sqlEx.getMessage());
-            }
-            catch (Exception ex) {
-                System.out.println("Erro = " +    ex.getMessage());
-            } 
+        List<Categoria> lstCategorias = new ArrayList<Categoria>();
+        try {
+            EntityManagerFactory emf = Persistence.createEntityManagerFactory("padaria");
+            EntityManager em = emf.createEntityManager();
+            lstCategorias = em.createQuery("from Categoria").getResultList();
+        } catch (Exception ex) {
+            System.out.println("Erro = " + ex.getMessage());
+        }
 
-    return lstCategorias;
+        return lstCategorias;
     }
 
     @Override
     public Categoria getCategoria(int id) {
         Categoria cat = new Categoria();
-       
 
         try {
-            PreparedStatement pStatementGetCategoria = conexao.prepareStatement("Select IDCategoria, Descricao from TB_Categoria  WHERE IDCategoria = ?");
-            pStatementGetCategoria.setInt(1, id);
-            ResultSet rs = pStatementGetCategoria.executeQuery();
-
-            int idCategoria = -1;
-            String descricao = "";
-            while (rs.next()) {
-
-                idCategoria = rs.getInt("IDCategoria");
-                descricao = rs.getString("Descricao");
-                cat.setIDCategoria(idCategoria);
-                cat.setDescricao(descricao);
-
-            }
-        } catch (SQLException sqlEx) {
-            System.out.println("Erro de BD = " + sqlEx.getErrorCode() + " - " + sqlEx.getMessage());
+            EntityManagerFactory emf = Persistence.createEntityManagerFactory("padaria");
+            EntityManager em = emf.createEntityManager();
+            cat = em.find(Categoria.class, id);
         } catch (Exception ex) {
             System.out.println("Erro = " + ex.getMessage());
         }
-
         return cat;
 
     }
 
     @Override
     public Categoria getCategoria(String descricao) {
-     Categoria cat = new Categoria();
-       
-
+        Categoria cat = new Categoria();
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("padaria");
+        EntityManager em = emf.createEntityManager();
         try {
-            PreparedStatement pStatementGetCategoria = conexao.prepareStatement("Select IDCategoria, Descricao from TB_Categoria  WHERE Descricao = ?");
-            pStatementGetCategoria.setString(1, descricao);
-            ResultSet rs = pStatementGetCategoria.executeQuery();
 
-            int idCategoria = -1;
-            String descricaoCategoria = "";
-            while (rs.next()) {
+            Query query = em.createQuery("from Categoria c where c.Descricao = :descricao");
+            query.setParameter("descricao", descricao);
+            cat = (Categoria) query.getSingleResult();
 
-                idCategoria = rs.getInt("IDCategoria");
-                descricaoCategoria = rs.getString("Descricao");
-                cat.setIDCategoria(idCategoria);
-                cat.setDescricao(descricao);
-
-            }
-        } catch (SQLException sqlEx) {
-            System.out.println("Erro de BD = " + sqlEx.getErrorCode() + " - " + sqlEx.getMessage());
         } catch (Exception ex) {
             System.out.println("Erro = " + ex.getMessage());
         }
@@ -122,82 +79,56 @@ public class CategoriaDAOImpl implements CategoriaDAO {
 
     @Override
     public void updateCategoria(Categoria categoria) {
-         try {
-            int idGerado = -1;
-            
-                    
-            PreparedStatement pStatementUpdateCategoria = conexao.prepareStatement("UPDATE TB_Categoria SET Descricao = ?  WHERE IDCategoria = ?");
-            pStatementUpdateCategoria.setString(1, categoria.getDescricao());
-            pStatementUpdateCategoria.setInt(2, categoria.getIDCategoria());
-    
-            int resultado = pStatementUpdateCategoria.executeUpdate();
-            
-            if (resultado > 0) {
-                
-                System.out.println("Categoria de id " + categoria.getIDCategoria() + " atualizada com sucesso!");
-            } else {
-                System.out.println("Ops! Deu ruim X_X. Não foi possível atualizar a categoria");
-            }
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("padaria");
+        EntityManager em = emf.createEntityManager();
 
-        } catch (SQLException ex) {
-            System.out.println("Erro de BD = " + ex.getErrorCode() + " - " + ex.getMessage());
+        try {
+
+            em.getTransaction().begin();
+            em.merge(categoria);
+            em.getTransaction().commit();
+        } catch (Exception ex) {
+            System.out.println("Erro de BD = " + ex.getMessage());
+            em.getTransaction().rollback();
         }
 
-        
     }
 
     @Override
     public int insertCategoria(Categoria categoria) {
-        int idGerado = -1;
-       try {
-        
-        PreparedStatement pStatementInsertCategoria = conexao.prepareStatement("Insert into TB_Categoria (descricao) values (?) ", PreparedStatement.RETURN_GENERATED_KEYS);
-        pStatementInsertCategoria.setString(1, categoria.getDescricao());
-        int resultado = pStatementInsertCategoria.executeUpdate();
-        ResultSet rs = pStatementInsertCategoria.getGeneratedKeys();
-        if(rs.first()) {
-            idGerado = rs.getInt(1);
-        }
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("padaria");
+        EntityManager em = emf.createEntityManager();
 
-        if(idGerado >0)
-        {
-            System.out.println("Categoria " + idGerado +  " inserida com suceso");
-        }
-        else
-        {
-            System.out.println("Não foi possivel inserir a Categoria");
-        }
+        try {
 
-       }
-       catch(SQLException sqlEx) {
-        System.out.println("Erro de BD = " + sqlEx.getErrorCode()  + " - " +  sqlEx.getMessage());
+            em.getTransaction().begin();
+            em.persist(categoria);
+
+            em.getTransaction().commit();
+        } catch (Exception ex) {
+            em.getTransaction().rollback();
         }
-        catch (Exception ex) {
-            System.out.println("Erro = " +    ex.getMessage());
-        } 
-        return idGerado;
-        
+        System.out.println(categoria.getIDCategoria());
+        return categoria.getIDCategoria();
+
     }
 
     @Override
     public void deleteCategoria(int id) {
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("padaria");
+        EntityManager em = emf.createEntityManager();
         try {
-            // TODO Auto-generated method stub
 
-            PreparedStatement pStatementeDeleteCategoria = conexao.prepareStatement("DELETE FROM TB_Categoria WHERE IDCategoria = ? ");
-             pStatementeDeleteCategoria.setInt(1, id);
-             int resultado = pStatementeDeleteCategoria.executeUpdate();
-             
-             if(resultado > 0){
-                 System.out.println("Categoria deletada com sucesso");
-             }else{
-                 System.out.println("Não foi possível deletar a categoria");
-             }
-            
-        } catch (SQLException ex) {
+            Categoria categoria = em.find(Categoria.class, id);
+            // TODO Auto-generated method stub
+            em.getTransaction().begin();
+            em.remove(categoria);
+            em.getTransaction().commit();
+
+        } catch (Exception ex) {
             System.out.println("Erro = " + ex.getMessage());
+            em.getTransaction().rollback();
         }
-        
-        
+
     }
 }

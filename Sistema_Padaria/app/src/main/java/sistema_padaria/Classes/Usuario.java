@@ -4,27 +4,51 @@
  */
 package sistema_padaria.Classes;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
 /**
  *
  * @author Pedro
  */
+@Entity
+@Table(name = "TB_Usuario")
 public class Usuario {
-    private int IDUsuario;
-    private Perfil perfil;
-    private String NomeUsuario;
-    private String Senha;
-    private String Status;
 
-    public Usuario(int IDUsuario, Perfil perfil, String NomeUsuario, String Senha, String Status) {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int IDUsuario;
+    @ManyToOne
+    @JoinColumn(name = "IDPerfil")
+    private Perfil perfil;
+    @Column(name = "Nome")
+    private String NomeUsuario;
+    @Column(name = "Senha")
+    private String Senha;
+    @Column(name = "Status")
+    private String Status;
+    @Column(name = "Login")
+    private String Login;
+    public Usuario(int IDUsuario, Perfil perfil, String NomeUsuario, String Senha, String Status,String Login) {
         this.IDUsuario = IDUsuario;
         this.perfil = perfil;
         this.NomeUsuario = NomeUsuario;
         this.Senha = Senha;
         this.Status = Status;
+        this.Login = Login;
     }
-    
-    public Usuario(){}
 
+    public Usuario() {
+    }
+    public String getLogin(){
+        return Login;
+    }
     public int getIDUsuario() {
         return IDUsuario;
     }
@@ -64,12 +88,7 @@ public class Usuario {
     public void setStatus(String Status) {
         this.Status = Status;
     }
-    
-    
-    
-    
-    
-    
-    
-    
+    public void setLogin(String Login){
+        this.Login =  Login;
+    }
 }

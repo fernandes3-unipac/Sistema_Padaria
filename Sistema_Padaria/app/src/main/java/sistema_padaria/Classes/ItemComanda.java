@@ -4,26 +4,49 @@
  */
 package sistema_padaria.Classes;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
 /**
  *
  * @author Pedro
  */
+@Entity
+@Table(name = "TB_Item_Comanda")
 public class ItemComanda {
-    
-    private int IDItemComanda;
-    private Produtos produto;
-    private Double Quantidade;
-    private Double ValorUnitario;
 
-    public ItemComanda(int IDItemComanda, Produtos produto, Double Quantidade, Double ValorUnitario) {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "IDItemComanda")
+    private int IDItemComanda;
+    @ManyToOne
+    @JoinColumn(name = "IDProduto")
+    private Produtos produto;
+    @Column(name = "Quantidade")
+    private Double Quantidade;
+    @Column(name = "ValorUnitario")
+    private Double ValorUnitario;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "IDComanda")
+    private Comanda comanda;
+
+    public ItemComanda(int IDItemComanda, Produtos produto, Double Quantidade, Double ValorUnitario, Comanda comanda) {
         this.IDItemComanda = IDItemComanda;
         this.produto = produto;
         this.Quantidade = Quantidade;
         this.ValorUnitario = ValorUnitario;
+        this.comanda = comanda;
     }
-    
-    
-    public ItemComanda(){};
+
+    public ItemComanda() {
+    }
 
     public int getIDItemComanda() {
         return IDItemComanda;
@@ -56,9 +79,13 @@ public class ItemComanda {
     public void setValorUnitario(Double ValorUnitario) {
         this.ValorUnitario = ValorUnitario;
     }
-    
-    
-    
-    
-    
+
+    public Comanda getComanda() {
+        return comanda;
+    }
+
+    public void setComanda(Comanda comanda) {
+        this.comanda = comanda;
+    }
+
 }

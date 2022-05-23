@@ -8,18 +8,33 @@ package sistema_padaria.Classes;
  *
  * @author Pedro
  */
+
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name = "TB_Categoria")
 public class Categoria {
-    
-    
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "IDCategoria")
     private int IDCategoria;
+    @Column(name = "Descricao")
     private String Descricao;
 
     public Categoria(int IDCategoria, String Descricao) {
         this.IDCategoria = IDCategoria;
         this.Descricao = Descricao;
     }
-    
-    public Categoria(){}
+
+    public Categoria() {
+    }
 
     public int getIDCategoria() {
         return IDCategoria;
@@ -36,11 +51,5 @@ public class Categoria {
     public void setDescricao(String Descricao) {
         this.Descricao = Descricao;
     }
-    
-    
-    
-    
-    
-    
-    
+
 }

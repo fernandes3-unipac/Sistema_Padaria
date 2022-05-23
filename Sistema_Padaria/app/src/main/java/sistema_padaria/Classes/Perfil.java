@@ -4,21 +4,35 @@
  */
 package sistema_padaria.Classes;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
 /**
  *
  * @author Pedro
  */
+@Entity
+@Table(name = "TB_Perfil")
 public class Perfil {
-    
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "IDPerfil")
     private int IDPerfil;
+    @Column(name = "Descricao")
     private String Descricao;
 
     public Perfil(int IDPerfil, String Descricao) {
         this.IDPerfil = IDPerfil;
         this.Descricao = Descricao;
     }
-    
-    public Perfil(){}
+
+    public Perfil() {
+    }
 
     public int getIDPerfil() {
         return IDPerfil;
@@ -35,16 +49,5 @@ public class Perfil {
     public void setDescricao(String Descricao) {
         this.Descricao = Descricao;
     }
-    
-    
-    
-    
-    
-    
-    
-    
-   
-    
-    
-    
+
 }
